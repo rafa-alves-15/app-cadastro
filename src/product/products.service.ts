@@ -1,18 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { CreateProductsDto } from './dto/create-products.dto';
+import { GetProductsFilterDto } from './dto/get-products-filter.dto';
 import { Products, ProductStatus } from './products.model';
 
 @Injectable()
 export class ProductsService {
   private products: Products[] = [];
 
-  getAllProducts() {
+  getAllProducts(): Products [] {
     return this.products;
   }
 
+  getProductsWithFilter(filterDto: GetProductsFilterDto): Products[] {
+    const {status, search} = filterDto;
+
+    let products = this.getAllProducts();
+    
+    if (status) {
+      products = products.filter((product) => product.status === status)
+    }
+    
+    if (search) {
+      products = products.filter((product) => {
+        if (product.name.includes(search) || product.brand.includes(search)) {
+          return true;
+        }
+        return false;
+      });
+    }
+    return products;
+  }
+
   getProductsById(id: string): Products {
-    return this.products.find((product) => product.id === id)
+    const found = this.products.find((product) => product.id === id);
+
+    if (!found) {
+      throw new NotFoundException(`Product with ID: "${id}" was not found`);
+    }
+    return found;
   }
 
   createProducts(createProductsDto: CreateProductsDto): Products {
