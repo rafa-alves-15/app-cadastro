@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { CreateProductsDto } from './dto/create-products.dto';
 import { GetProductsFilterDto } from './dto/get-products-filter.dto';
-import { Products, ProductStatus } from './products.model';
+import { UpdateProductsDto } from './dto/update-products.dto';
+import { Products } from './products.model';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -36,12 +37,9 @@ export class ProductsController {
     @Patch('/:id/edit')
     updateProducts(
       @Param('id') id: string,
-      @Body('name') name: string,
-      @Body('brand') brand: string,
-      @Body('price') price: number,
-      @Body('status') status: ProductStatus,
+      @Body() updateProductsDto: UpdateProductsDto,
     ): Products {
-      return this.productsService.updateProducts(id, name, brand, price, status);
+      return this.productsService.updateProducts(id, updateProductsDto);
     }
   }
 
