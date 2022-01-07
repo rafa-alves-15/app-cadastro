@@ -9,5 +9,5 @@ export class CreateProductsDto {
   brand: string;
 
   @IsNotEmpty()
-  price: number;
+  price: string;
 }
