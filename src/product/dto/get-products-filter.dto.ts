@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString } from "class-validator";
-import { ProductStatus } from "../products.model";
+import { ProductStatus } from "../products-status-enum";
 
 export class GetProductsFilterDto {
   
