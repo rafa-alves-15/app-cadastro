@@ -1,75 +1,57 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { v4 as uuid } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
 import { CreateProductsDto } from './dto/create-products.dto';
 import { GetProductsFilterDto } from './dto/get-products-filter.dto';
 import { UpdateProductsDto } from './dto/update-products.dto';
-import { Products, ProductStatus } from './products.model';
+import { Product } from './product.entity';
+import { ProductsRepository } from './products.repository';
 
 @Injectable()
 export class ProductsService {
-  private products: Products[] = [];
+  constructor (
+    @InjectRepository(ProductsRepository)
+    private productsRepository: ProductsRepository,
+    ) {}
 
-  getAllProducts(): Products [] {
-    return this.products;
+  getProduct(filterDto: GetProductsFilterDto): Promise<Product[]> {
+    return this.productsRepository.getProduct(filterDto);
   }
 
-  getProductsWithFilter(filterDto: GetProductsFilterDto): Products[] {
-    const {status, search} = filterDto;
-
-    let products = this.getAllProducts();
-    
-    if (status) {
-      products = products.filter((product) => product.status === status)
-    }
-    
-    if (search) {
-      products = products.filter((product) => {
-        if (product.name.includes(search) || product.brand.includes(search)) {
-          return true;
-        }
-        return false;
-      });
-    }
-    return products;
-  }
-
-  getProductsById(id: string): Products {
-    const found = this.products.find((product) => product.id === id);
-
+  async getProductsById(id: string): Promise<Product> {
+    const found = await this.productsRepository.findOne(id);
+      
     if (!found) {
       throw new NotFoundException(`Product with ID: "${id}" was not found`);
-    }
+        }
+
     return found;
+      }
+
+
+  async createProducts(createProductsDto: CreateProductsDto): Promise<Product> {
+
+    return this.productsRepository.createProducts(createProductsDto);
   }
 
-  createProducts(createProductsDto: CreateProductsDto): Products {
-    const { name, brand, price} = createProductsDto
-
-    const product: Products = {
-      id: uuid(),
-      name,
-      brand,
-      price,
-      status: ProductStatus.AVAILABLE,
-
+  async deleteProducts(id: string): Promise<void> {
+    const result = await this.productsRepository.delete(id);
+    
+    if (result.affected === 0) {
+      throw new NotFoundException(`Product with ID: "${id}" was not found`);
     }
-    this.products.push(product);
-    return product
   }
 
-  DeleteProducts(id: string): void {
-    const  found = this.getProductsById(id);
-    this.products = this.products.filter((product) => product.id !== found.id)
-  }
-
-  updateProducts(id: string, updateProductsDto: UpdateProductsDto) {
+  async updateProducts(id: string, updateProductsDto: UpdateProductsDto): Promise<Product> {
     const { name, brand, price, status} = updateProductsDto
-    const products = this.getProductsById(id);
+    const products = await this.getProductsById(id);
     products.name = name;
     products.brand = brand;
     products.price = price;
     products.status = status;
-    return products
+
+    await this.productsRepository.save(products);
+    
+    return products;
   }
 
 }

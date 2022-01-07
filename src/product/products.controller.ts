@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestj
 import { CreateProductsDto } from './dto/create-products.dto';
 import { GetProductsFilterDto } from './dto/get-products-filter.dto';
 import { UpdateProductsDto } from './dto/update-products.dto';
-import { Products } from './products.model';
+import { Product } from './product.entity';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -10,35 +10,30 @@ export class ProductsController {
   constructor(private productsService: ProductsService) {}
 
     @Get()
-    getAllProducts(@Query() filterDto: GetProductsFilterDto): Products[] {
-      if(Object.keys(filterDto).length) {
-        return this.productsService.getProductsWithFilter(filterDto);
-      } else {
-        return this.productsService.getAllProducts();
-      }
-
+    getAllProducts(@Query() filterDto: GetProductsFilterDto): Promise<Product[]> {
+      return this.productsService.getProduct(filterDto);
     }
-
+    
     @Get('/:id')
-    getProductsById(@Param('id') id: string): Products {
+    getProductsById(@Param('id') id: string): Promise<Product> {
       return this.productsService.getProductsById(id);
     }
 
     @Post()
-    createProducts(@Body() createProductsDto: CreateProductsDto): Products {
+    createProducts(@Body() createProductsDto: CreateProductsDto): Promise<Product> {
       return this.productsService.createProducts(createProductsDto);
     }  
     
     @Delete('/:id')
-    DeleteProducts(@Param('id') id: string): void {
-      return this.productsService.DeleteProducts(id);
+    DeleteProducts(@Param('id') id: string): Promise<void> {
+      return this.productsService.deleteProducts(id);
     }
 
     @Patch('/:id/edit')
     updateProducts(
       @Param('id') id: string,
       @Body() updateProductsDto: UpdateProductsDto,
-    ): Products {
+    ): Promise<Product> {
       return this.productsService.updateProducts(id, updateProductsDto);
     }
   }
