@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Product } from "src/product/product.entity";
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class User {
@@ -23,4 +24,7 @@ export class User {
 
   @Column({unique: true})
   email: string;
+
+  @OneToOne((_type) => Product, (product) => product.user, {eager: true})
+  products: Product[];
 }
